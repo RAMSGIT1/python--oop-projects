@@ -1,0 +1,3 @@
+acc_type,account_no,holder,balance,history
+Savings,SB101,Aarav Sharma,2500.0,2026-09-28 10:00:00 - Account created with ₹2000.00::2026-09-28 11:30:00 - Deposited: ₹500.00 | Balance: ₹2500.00
+Current,CA201,Priya Rao,1500.0,2026-09-28 09:15:00 - Account created with ₹5000.00::2026-09-28 14:00:00 - Withdrawal (Current): ₹3500.00 | Balance: ₹1500.00

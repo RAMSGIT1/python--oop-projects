@@ -1,0 +1,6 @@
+type,id,date,category,amount,description
+Income,T101,2026-10-01,Salary,65000.0,October Tech Salary
+Expense,T102,2026-10-02,Rent,18000.0,Apartment Monthly Rent
+Expense,T103,2026-10-03,Groceries,3400.0,Weekly supermarket purchase
+Income,T104,2026-10-04,Freelance,12000.0,UI consulting client payment
+Expense,T105,2026-10-04,Utilities,2200.0,Electricity and fiber internet

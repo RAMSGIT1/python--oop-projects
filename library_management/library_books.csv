@@ -1,0 +1,4 @@
+isbn,title,author,is_issued,issued_to
+978-0132350884,Clean Code,Robert C. Martin,False,
+978-0201616224,The Pragmatic Programmer,Andrew Hunt,True,Aarav
+978-1449355730,Learning Python,Mark Lutz,False,

@@ -1,0 +1,5 @@
+type,prompt,opt_a,opt_b,opt_c,opt_d,correct
+MCQ,Which keyword defines an abstract method in Python?,@virtual,@abstractmethod,@abstract,@override,B
+MCQ,What data structure uses LIFO ordering?,Queue,Stack,Array,Tree,B
+TF,Python supports multiple inheritance.,,,,True
+TF,Private attributes in Python are completely inaccessible from outside.,,,,False

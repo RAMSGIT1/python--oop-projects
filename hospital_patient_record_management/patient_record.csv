@@ -1,0 +1,4 @@
+type,id,name,age,diagnosis,p1,p2,p3
+Inpatient,P101,Aarav Sharma,45,Appendicitis,4,1500.0,8500.0
+Outpatient,P102,Diya Patel,28,Allergic Rhinitis,600.0,1200.0,0.0
+Inpatient,P103,Rohan Verma,62,Knee Arthroscopy,2,2500.0,22000.0

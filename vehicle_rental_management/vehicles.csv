@@ -1,0 +1,5 @@
+type,id,make,model,rate,spec,is_rented,rented_by
+Car,C101,Hyundai,i20,1800.0,5,False,
+Car,C102,Honda,City,2400.0,5,True,Aarav
+Van,V201,Tata,Ace,1500.0,1.5,False,
+Van,V202,Mahindra,Bolero Maxi,2100.0,2.0,True,Rohan

@@ -1,0 +1,4 @@
+type,emp_id,name,dept,param1,param2
+Salaried,EMP01,Aarav Sharma,Engineering,75000.0,5000.0
+Hourly,EMP02,Diya Patel,Design,450.0,170.0
+Salaried,EMP03,Rohan Verma,Operations,52000.0,3000.0
