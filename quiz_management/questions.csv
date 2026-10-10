@@ -1,5 +1,5 @@
 type,prompt,opt_a,opt_b,opt_c,opt_d,correct
-MCQ,Which keyword defines an abstract method in Python?,@virtual,@abstractmethod,@abstract,@override,B
-MCQ,What data structure uses LIFO ordering?,Queue,Stack,Array,Tree,B
+MCQ,Which keyword is used to define an abstract class method in Python?,@abstract,@abstractmethod,@virtual,@override,B
+MCQ,Which built-in function returns the length of a sequence?,count(),size(),len(),length(),C
 TF,Python supports multiple inheritance.,,,,True
-TF,Private attributes in Python are completely inaccessible from outside.,,,,False
+TF,A tuple in Python is a mutable data structure.,,,,False

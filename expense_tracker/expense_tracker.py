@@ -116,7 +116,8 @@ class ExpenseTracker:
     """Coordinates transaction entries, summaries, search, and CSV persistence."""
 
     def __init__(self, filename: str = "expenses.csv"):
-        self.filename = filename
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.filename = os.path.join(base_dir, filename)
         self.records: dict[str, Transaction] = {}
         self.load_from_file()
 

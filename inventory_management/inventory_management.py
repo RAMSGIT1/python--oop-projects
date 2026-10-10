@@ -73,7 +73,6 @@ class Product(Item):
         self.set_price(price)
         self.set_quantity(quantity)
 
-    # --- Encapsulation ---
     @property
     def category(self) -> str:
         return self._category
@@ -154,7 +153,8 @@ class InventoryManager:
     """Coordinates inventory tracking, reporting, and CSV persistence."""
 
     def __init__(self, filename: str = "inventory.csv"):
-        self.filename = filename
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.filename = os.path.join(base_dir, filename)
         self.items: dict[str, Product] = {}
         self.load_from_file()
 
@@ -196,7 +196,7 @@ class InventoryManager:
         print(f"✓ Price for '{product.name}' updated to ₹{product.price:.2f}")
 
     def delete_product(self, item_id: str):
-        self.search_product(item_id)  # Validate existence
+        self.search_product(item_id)
         del self.items[item_id]
         print(f"✓ Product '{item_id}' deleted from inventory.")
 
@@ -243,35 +243,43 @@ class InventoryManager:
                             item.expiry_date if is_perishable else "",
                         ]
                     )
-            print(f"✓ Inventory records saved to '{self.filename}'.")
+            print(f"✓ Inventory records saved to '{os.path.basename(self.filename)}'.")
         except IOError as e:
             print(f"File Error: Could not save inventory ({e}).")
 
     def load_from_file(self):
         if not os.path.exists(self.filename):
+            print(f"Notice: '{os.path.basename(self.filename)}' not found. Starting with empty records.")
             return
 
         try:
-            with open(self.filename, mode="r", newline="", encoding="utf-8") as f:
+            with open(self.filename, mode="r", newline="", encoding="utf-8-sig") as f:
                 reader = csv.DictReader(f)
-                for row in reader:
-                    p_type = row["type"]
-                    item_id = row["item_id"]
-                    name = row["name"]
-                    cat = row["category"]
-                    price = float(row["price"])
-                    qty = int(row["quantity"])
-                    expiry = row.get("expiry_date", "")
+                if reader.fieldnames:
+                    reader.fieldnames = [name.strip().lower() for name in reader.fieldnames]
 
-                    if p_type == "Perishable":
-                        self.items[item_id] = PerishableProduct(
-                            item_id, name, cat, price, qty, expiry
-                        )
-                    else:
-                        self.items[item_id] = Product(
-                            item_id, name, cat, price, qty
-                        )
-        except (IOError, KeyError, ValueError) as e:
+                for row in reader:
+                    cleaned = {k: (v.strip() if isinstance(v, str) else v) for k, v in row.items() if k}
+                    p_type = cleaned.get("type", "").capitalize()
+                    item_id = cleaned.get("item_id", "")
+                    name = cleaned.get("name", "")
+                    cat = cleaned.get("category", "")
+                    price = float(cleaned.get("price", 0.0))
+                    qty = int(cleaned.get("quantity", 0))
+                    expiry = cleaned.get("expiry_date", "")
+
+                    if item_id:
+                        if p_type == "Perishable":
+                            self.items[item_id] = PerishableProduct(
+                                item_id, name, cat, price, qty, expiry
+                            )
+                        else:
+                            self.items[item_id] = Product(
+                                item_id, name, cat, price, qty
+                            )
+
+            print(f"✓ Loaded {len(self.items)} inventory item(s) from '{os.path.basename(self.filename)}'.")
+        except Exception as e:
             print(f"Warning: Issue reading '{self.filename}' ({e}). Starting fresh.")
 
 

@@ -43,7 +43,7 @@ class AcademicEntity(ABC):
     """Abstract base class representing an academic entity."""
 
     def __init__(self, entity_id: str, name: str):
-        self._entity_id = entity_id  # Protected
+        self._entity_id = entity_id
         self._name = name
 
     @property
@@ -155,8 +155,9 @@ class RegistrationManager:
     """Coordinates student and course catalogs, registrations, and CSV persistence."""
 
     def __init__(self, students_file: str = "reg_students.csv", courses_file: str = "reg_courses.csv"):
-        self.students_file = students_file
-        self.courses_file = courses_file
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.students_file = os.path.join(base_dir, students_file)
+        self.courses_file = os.path.join(base_dir, courses_file)
         self.students: dict[str, EnrolledStudent] = {}
         self.courses: dict[str, Course] = {}
         self.load_from_files()
@@ -251,35 +252,58 @@ class RegistrationManager:
                     enrolled_str = ";".join(c.enrolled_students)
                     writer.writerow([c.course_code, c.title, c.credits, c.capacity, enrolled_str])
 
-            print(f"✓ Data saved to '{self.students_file}' and '{self.courses_file}'.")
+            print(f"✓ Data saved to '{os.path.basename(self.students_file)}' and '{os.path.basename(self.courses_file)}'.")
         except IOError as e:
             print(f"File Error: Could not save records ({e}).")
 
     def load_from_files(self):
+        # Load Students
         if os.path.exists(self.students_file):
             try:
-                with open(self.students_file, mode="r", newline="", encoding="utf-8") as sf:
+                with open(self.students_file, mode="r", newline="", encoding="utf-8-sig") as sf:
                     reader = csv.DictReader(sf)
-                    for row in reader:
-                        s_id = row["student_id"]
-                        self.students[s_id] = EnrolledStudent(s_id, row["name"], row["major"])
-            except Exception as e:
-                print(f"Warning: Issue reading students file ({e}).")
+                    if reader.fieldnames:
+                        reader.fieldnames = [name.strip().lower() for name in reader.fieldnames]
 
+                    for row in reader:
+                        cleaned = {k: (v.strip() if isinstance(v, str) else v) for k, v in row.items() if k}
+                        s_id = cleaned.get("student_id", "")
+                        name = cleaned.get("name", "")
+                        major = cleaned.get("major", "")
+                        if s_id:
+                            self.students[s_id] = EnrolledStudent(s_id, name, major)
+
+                print(f"✓ Loaded {len(self.students)} student(s) from '{os.path.basename(self.students_file)}'.")
+            except Exception as e:
+                print(f"Warning: Issue reading students file ({e}). Starting with empty student directory.")
+        else:
+            print(f"Notice: '{os.path.basename(self.students_file)}' not found. Starting with empty student directory.")
+
+        # Load Courses
         if os.path.exists(self.courses_file):
             try:
-                with open(self.courses_file, mode="r", newline="", encoding="utf-8") as cf:
+                with open(self.courses_file, mode="r", newline="", encoding="utf-8-sig") as cf:
                     reader = csv.DictReader(cf)
+                    if reader.fieldnames:
+                        reader.fieldnames = [name.strip().lower() for name in reader.fieldnames]
+
                     for row in reader:
-                        code = row["course_code"]
-                        title = row["title"]
-                        credits = int(row["credits"])
-                        capacity = int(row["capacity"])
-                        raw_enrolled = row.get("enrolled_students", "")
+                        cleaned = {k: (v.strip() if isinstance(v, str) else v) for k, v in row.items() if k}
+                        code = cleaned.get("course_code", "").upper()
+                        title = cleaned.get("title", "")
+                        credits = int(cleaned.get("credits", 1))
+                        capacity = int(cleaned.get("capacity", 30))
+                        raw_enrolled = cleaned.get("enrolled_students", "")
                         enrolled = [s.strip() for s in raw_enrolled.split(";") if s.strip()] if raw_enrolled else []
-                        self.courses[code] = Course(code, title, credits, capacity, enrolled)
+
+                        if code:
+                            self.courses[code] = Course(code, title, credits, capacity, enrolled)
+
+                print(f"✓ Loaded {len(self.courses)} course(s) from '{os.path.basename(self.courses_file)}'.")
             except Exception as e:
-                print(f"Warning: Issue reading courses file ({e}).")
+                print(f"Warning: Issue reading courses file ({e}). Starting with empty course catalog.")
+        else:
+            print(f"Notice: '{os.path.basename(self.courses_file)}' not found. Starting with empty course catalog.")
 
 
 # ==========================================

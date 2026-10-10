@@ -1,0 +1,5 @@
+type,id,name,age,diagnosis,p1,p2,p3
+Inpatient,P101,Ramesh Gupta,45,Pneumonia,4,1200.0,3500.0
+Inpatient,P102,Sunita Patel,62,Fractured Hip,7,1500.0,8500.0
+Outpatient,P201,Vikram Singh,29,Migraine,600.0,450.0,0.0
+Outpatient,P202,Ananya Roy,34,Allergic Rhinitis,500.0,0.0,0.0

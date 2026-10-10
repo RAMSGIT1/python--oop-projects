@@ -26,7 +26,7 @@ class Question(ABC):
     """Abstract base class representing a generic quiz question."""
 
     def __init__(self, prompt: str):
-        self._prompt = prompt  # Protected attribute
+        self._prompt = prompt
 
     @property
     def prompt(self) -> str:
@@ -104,45 +104,63 @@ class QuizManager:
         questions_file: str = "questions.csv",
         results_file: str = "quiz_results.csv",
     ):
-        self.questions_file = questions_file
-        self.results_file = results_file
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.questions_file = os.path.join(base_dir, questions_file)
+        self.results_file = os.path.join(base_dir, results_file)
         self.questions: list[Question] = []
         self.load_questions()
 
     def load_questions(self):
         self.questions.clear()
         if not os.path.exists(self.questions_file):
+            print(
+                f"Notice: '{os.path.basename(self.questions_file)}' not found. "
+                "Starting with empty question bank."
+            )
             return
 
         try:
             with open(
-                self.questions_file, mode="r", newline="", encoding="utf-8"
+                self.questions_file, mode="r", newline="", encoding="utf-8-sig"
             ) as f:
                 reader = csv.DictReader(f)
+                if reader.fieldnames:
+                    reader.fieldnames = [
+                        name.strip().lower() for name in reader.fieldnames if name
+                    ]
+
                 for row in reader:
-                    q_type = row["type"].strip().upper()
-                    prompt = row["prompt"].strip()
+                    cleaned = {
+                        k: (v.strip() if isinstance(v, str) else v)
+                        for k, v in row.items()
+                        if k
+                    }
+                    q_type = str(cleaned.get("type") or "").strip().upper()
+                    prompt = str(cleaned.get("prompt") or "").strip()
+                    correct_raw = str(cleaned.get("correct") or "").strip()
+
+                    if not prompt:
+                        continue
 
                     if q_type == "MCQ":
                         options = [
-                            row["opt_a"].strip(),
-                            row["opt_b"].strip(),
-                            row["opt_c"].strip(),
-                            row["opt_d"].strip(),
+                            str(cleaned.get("opt_a") or "").strip(),
+                            str(cleaned.get("opt_b") or "").strip(),
+                            str(cleaned.get("opt_c") or "").strip(),
+                            str(cleaned.get("opt_d") or "").strip(),
                         ]
-                        correct = row["correct"].strip()
                         self.questions.append(
-                            MCQQuestion(prompt, options, correct)
+                            MCQQuestion(prompt, options, correct_raw)
                         )
                     elif q_type == "TF":
-                        correct_bool = row["correct"].strip().lower() in [
-                            "true",
-                            "t",
-                            "1",
-                        ]
+                        correct_bool = correct_raw.lower() in ["true", "t", "1"]
                         self.questions.append(
                             TrueFalseQuestion(prompt, correct_bool)
                         )
+
+            print(
+                f"✓ Loaded {len(self.questions)} question(s) from '{os.path.basename(self.questions_file)}'."
+            )
         except Exception as e:
             raise QuestionLoadError(f"Error parsing '{self.questions_file}': {e}")
 
@@ -230,7 +248,7 @@ class QuizManager:
                 writer.writerow(
                     [timestamp, candidate_name, score, total, percentage]
                 )
-            print(f"✓ Result successfully saved to '{self.results_file}'.")
+            print(f"✓ Result successfully saved to '{os.path.basename(self.results_file)}'.")
         except IOError as e:
             print(f"Error saving quiz result: {e}")
 
@@ -243,13 +261,17 @@ class QuizManager:
         print("CANDIDATE PERFORMANCE RECORDS".center(70))
         print("=" * 70)
         with open(
-            self.results_file, mode="r", newline="", encoding="utf-8"
+            self.results_file, mode="r", newline="", encoding="utf-8-sig"
         ) as f:
             reader = csv.DictReader(f)
+            if reader.fieldnames:
+                reader.fieldnames = [name.strip().lower() for name in reader.fieldnames]
+
             for row in reader:
+                cleaned = {k: (v.strip() if isinstance(v, str) else v) for k, v in row.items() if k}
                 print(
-                    f"{row['timestamp']} | Candidate: {row['candidate_name']:<15} | "
-                    f"Score: {row['score']}/{row['total']} ({row['percentage']}%)"
+                    f"{cleaned.get('timestamp')} | Candidate: {cleaned.get('candidate_name', ''):<15} | "
+                    f"Score: {cleaned.get('score')}/{cleaned.get('total')} ({cleaned.get('percentage')}%)"
                 )
         print("=" * 70)
 

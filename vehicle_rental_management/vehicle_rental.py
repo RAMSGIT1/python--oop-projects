@@ -163,7 +163,8 @@ class RentalManager:
     """Manages vehicle inventory, bookings, invoicing, and CSV persistence."""
 
     def __init__(self, filename: str = "vehicles.csv"):
-        self.filename = filename
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.filename = os.path.join(base_dir, filename)
         self.vehicles: dict[str, Vehicle] = {}
         self.load_from_file()
 

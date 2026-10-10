@@ -147,7 +147,6 @@ class HourlyEmployee(Employee):
     def calculate_salary(self) -> float:
         if self.__hours_worked <= self.STANDARD_HOURS_CAP:
             return round(self.__hours_worked * self.__hourly_rate, 2)
-        # Overtime calculation: regular hours + 1.5x rate for extra hours
         regular_pay = self.STANDARD_HOURS_CAP * self.__hourly_rate
         overtime_hours = self.__hours_worked - self.STANDARD_HOURS_CAP
         overtime_pay = overtime_hours * (self.__hourly_rate * 1.5)
@@ -178,7 +177,8 @@ class PayrollManager:
     """Manages the employee registry and persistence."""
 
     def __init__(self, filename: str = "payroll_data.csv"):
-        self.filename = filename
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.filename = os.path.join(base_dir, filename)
         self.employees: dict[str, Employee] = {}
         self.load_from_file()
 
@@ -264,34 +264,42 @@ class PayrollManager:
                                 emp.hours_worked,
                             ]
                         )
-            print(f"✓ Payroll records saved to '{self.filename}'.")
+            print(f"✓ Payroll records saved to '{os.path.basename(self.filename)}'.")
         except IOError as e:
             print(f"File Error: Could not save payroll ({e}).")
 
     def load_from_file(self):
         if not os.path.exists(self.filename):
+            print(f"Notice: '{os.path.basename(self.filename)}' not found. Starting with empty records.")
             return
 
         try:
-            with open(self.filename, mode="r", newline="", encoding="utf-8") as f:
+            with open(self.filename, mode="r", newline="", encoding="utf-8-sig") as f:
                 reader = csv.DictReader(f)
-                for row in reader:
-                    e_type = row["type"]
-                    emp_id = row["emp_id"]
-                    name = row["name"]
-                    dept = row["dept"]
-                    p1 = float(row["param1"])
-                    p2 = float(row["param2"])
+                if reader.fieldnames:
+                    reader.fieldnames = [name.strip().lower() for name in reader.fieldnames]
 
-                    if e_type == "Salaried":
-                        self.employees[emp_id] = SalariedEmployee(
-                            emp_id, name, dept, p1, p2
-                        )
-                    elif e_type == "Hourly":
-                        self.employees[emp_id] = HourlyEmployee(
-                            emp_id, name, dept, p1, p2
-                        )
-        except (IOError, KeyError, ValueError) as e:
+                for row in reader:
+                    cleaned = {k: (v.strip() if isinstance(v, str) else v) for k, v in row.items() if k}
+                    e_type = cleaned.get("type", "").capitalize()
+                    emp_id = cleaned.get("emp_id", "")
+                    name = cleaned.get("name", "")
+                    dept = cleaned.get("dept", "")
+                    p1 = float(cleaned.get("param1", 0.0))
+                    p2 = float(cleaned.get("param2", 0.0))
+
+                    if emp_id:
+                        if e_type == "Salaried":
+                            self.employees[emp_id] = SalariedEmployee(
+                                emp_id, name, dept, p1, p2
+                            )
+                        elif e_type == "Hourly":
+                            self.employees[emp_id] = HourlyEmployee(
+                                emp_id, name, dept, p1, p2
+                            )
+
+            print(f"✓ Loaded {len(self.employees)} employee(s) from '{os.path.basename(self.filename)}'.")
+        except Exception as e:
             print(f"Warning: Issue reading '{self.filename}' ({e}). Starting fresh.")
 
 

@@ -110,7 +110,8 @@ class StudentManager:
     """Handles business logic, student records, and CSV persistence."""
 
     def __init__(self, filename: str = "students.csv"):
-        self.filename = filename
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.filename = os.path.join(base_dir, filename)
         self.students: dict[str, Student] = {}
         self.load_from_file()
 
